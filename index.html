@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GK Academy Challenge</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        /* --- Poora CSS Code Ab Yahan Hai --- */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        :root {
+            --primary-bg: #020024;
+            --gradient-bg: radial-gradient(circle, rgba(2, 0, 36, 1) 0%, rgba(9, 9, 121, 1) 35%, rgba(0, 21, 50, 1) 100%);
+            --option-bg: rgba(0, 0, 0, 0.3);
+            --option-border: #00c6ff;
+            --option-hover-bg: #ff9900;
+            --correct-bg: #28a745;
+            --wrong-bg: #dc3545;
+            --text-color: #ffffff;
+            --locked-bg: #ffc107;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--gradient-bg);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .kbc-container { width: 100%; max-width: 800px; background: var(--primary-bg); border-radius: 15px; box-shadow: 0 0 30px rgba(0, 198, 255, 0.4); border: 2px solid var(--option-border); padding: 15px; display: flex; flex-direction: column; position: relative; }
+        .auth-box { text-align: center; padding: 20px; }
+        #auth-form { display: flex; flex-direction: column; gap: 15px; margin: 20px 0; }
+        .auth-input { background: var(--option-bg); border: 1px solid var(--option-border); border-radius: 5px; padding: 12px; color: var(--text-color); font-size: 1rem; }
+        .auth-error { color: var(--wrong-bg); min-height: 20px; font-size: 0.9em; }
+        #auth-toggle-text, #forgot-password-text { margin-top: 15px; font-size: 0.9em; }
+        #auth-toggle-text span, #forgot-password-text span { color: var(--option-border); cursor: pointer; font-weight: bold; }
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 0 10px 15px 10px; border-bottom: 1px solid var(--option-bg); margin-bottom: 15px; }
+        .user-details { display: flex; flex-direction: column; align-items: flex-start; }
+        #user-name-display { font-weight: bold; }
+        #wallet-balance-display { font-size: 0.9em; color: var(--locked-bg); }
+        .header-controls { display: flex; align-items: center; }
+        .header-btn { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; margin-left: 15px; transition: color 0.3s; }
+        .header-btn:hover { color: var(--option-hover-bg); }
+        .view-title { text-align: center; margin-bottom: 20px; color: var(--option-border); }
+        #contest-list-container { display: flex; flex-direction: column; gap: 15px; }
+        .contest-card { background: var(--option-bg); border: 1px solid var(--option-border); border-radius: 10px; padding: 15px; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
+        .contest-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .contest-card-title { font-size: 1.2em; font-weight: bold; }
+        .contest-card-status { padding: 3px 8px; border-radius: 5px; font-size: 0.8em; font-weight: bold; }
+        .contest-card-status.live { background-color: var(--correct-bg); }
+        .contest-card-status.upcoming { background-color: var(--locked-bg); color: #000; }
+        .contest-card-status.finished { background-color: var(--wrong-bg); }
+        .contest-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em; color: #ddd; }
+        .contest-card-info { display: flex; flex-direction: column; }
+        .contest-card-info .label { font-size: 0.8em; color: #aaa; }
+        .back-btn { position: absolute; left: 10px; top: 10px; }
+        .game-area { display: flex; flex-direction: column; gap: 15px; padding: 10px; border-radius: 10px; }
+        .lifelines { position:relative; display: flex; justify-content: space-between; background: var(--option-bg); padding: 10px; border-radius: 10px; border: 1px solid var(--option-border); align-items: center; }
+        .contest-title { font-weight: bold; font-size: 1.2em; text-align: center; flex-grow: 1; }
+        #timer-display { color: white; font-size: 24px; font-weight: bold; cursor: default; background: #00000050; padding: 5px 15px; border-radius: 5px; }
+        .question-container { background: var(--option-bg); border: 2px solid var(--option-border); border-radius: 10px; padding: 20px; text-align: center; font-size: 1.1rem; min-height: 120px; display: flex; justify-content: center; align-items: center; margin-top: 15px; position: relative; }
+        .options-container { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .option { background: var(--option-bg); border: 2px solid var(--option-border); border-radius: 50px; padding: 12px 15px; cursor: pointer; transition: all 0.3s ease; font-size: 1rem; display: flex; align-items: center; }
+        .option.disabled { pointer-events: none; opacity: 0.6; }
+        .option.locked { background: var(--locked-bg) !important; color: #000 !important; border-color: #fff; font-weight: bold; }
+        .option.correct { background: var(--correct-bg) !important; }
+        .option.wrong { background: var(--wrong-bg) !important; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; }
+        .modal-content { background-color: var(--primary-bg); color: white; padding: 20px; border: 2px solid var(--option-border); border-radius: 10px; width: 90%; max-width: 500px; text-align: center; box-shadow: 0 0 20px var(--option-border); }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .loader { border: 5px solid rgba(255, 255, 255, 0.2); border-top: 5px solid var(--option-border); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: auto; }
+        .wallet-balance-info { font-size: 1.5em; margin: 20px 0; }
+        .wallet-balance-info span { font-size: 1.2em; color: var(--locked-bg); font-weight: bold; }
+        .wallet-actions { display: flex; flex-direction: column; gap: 15px; }
+        .wallet-actions input { width: 100%; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <!-- Auth Screen -->
+    <div id="auth-container" class="kbc-container"> <!-- Auth HTML remains same --> </div>
+
+    <!-- Main App Container -->
+    <div id="main-app-container" class="kbc-container" style="display: none;">
+        <div class="app-header">
+            <div id="user-info" class="user-details">
+                <span id="user-name-display"></span>
+                <span id="wallet-balance-display">Balance: ₹0</span>
+            </div>
+            <div class="header-controls">
+                <button id="wallet-btn" class="header-btn"><i class="fa-solid fa-wallet"></i></button>
+                <button id="leaderboard-btn" class="header-btn"><i class="fa-solid fa-trophy"></i></button>
+                <button id="logout-btn" class="header-btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </div>
+        <div id="contest-list-view"> <!-- Contest List HTML remains same --> </div>
+        <div id="game-view" style="display: none;"> <!-- Game View HTML remains same --> </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="leaderboard-modal" class="modal"> <!-- Leaderboard Modal HTML remains same --> </div>
+    <div id="wallet-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-wallet-btn">&times;</span>
+            <h2><i class="fa-solid fa-wallet" style="color: #ffc107;"></i> My Wallet</h2>
+            <div class="wallet-balance-info">Current Balance: <span id="modal-wallet-balance">₹0</span></div>
+            <div class="wallet-actions">
+                <input type="number" id="add-money-amount" class="auth-input" placeholder="Enter amount (e.g., 50)">
+                <button id="add-money-btn" class="action-btn">Add Money</button>
+            </div>
+            <p class="auth-error" id="wallet-error"></p>
+        </div>
+    </div>
+    
+    <!-- Firebase Scripts -->
+    <script> const firebaseConfig = { apiKey: "...", authDomain: "...", ... }; </script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    
+    <script>
+    // --- Poora JavaScript Code Ab Yahan Hai ---
+    document.addEventListener('DOMContentLoaded', () => {
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const functions = firebase.functions();
+
+        // DOM Elements
+        const userNameDisplay = document.getElementById('user-name-display');
+        const walletBalanceDisplay = document.getElementById('wallet-balance-display');
+        const walletBtn = document.getElementById('wallet-btn');
+        const walletModal = document.getElementById('wallet-modal');
+        const closeWalletBtn = document.getElementById('close-wallet-btn');
+        const modalWalletBalance = document.getElementById('modal-wallet-balance');
+        const addMoneyAmountInput = document.getElementById('add-money-amount');
+        const addMoneyBtn = document.getElementById('add-money-btn');
+        const walletError = document.getElementById('wallet-error');
+        const joinContestBtn = document.getElementById('join-contest-btn');
+        // ... (baaki saare puraane elements)
+
+        // App State
+        let currentUser = null;
+        let currentUserData = {};
+        // ... (baaki saare puraane states)
+
+        // AUTHENTICATION
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                // Real-time listener for user data (wallet balance etc.)
+                db.collection("users").doc(user.uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        currentUserData = doc.data();
+                        userNameDisplay.textContent = `Welcome, ${currentUserData.name}`;
+                        const balance = currentUserData.walletBalance || 0;
+                        walletBalanceDisplay.textContent = `Balance: ₹${balance.toFixed(2)}`;
+                        modalWalletBalance.textContent = `₹${balance.toFixed(2)}`;
+                    }
+                });
+                
+                // ... (baaki ka login logic)
+            } else {
+                // ... (logout logic)
+            }
+        });
+
+        // WALLET MODAL
+        walletBtn.addEventListener('click', () => { walletModal.style.display = 'flex'; });
+        closeWalletBtn.addEventListener('click', () => { walletModal.style.display = 'none'; });
+
+        // ADD MONEY
+        addMoneyBtn.addEventListener('click', async () => {
+            const amount = parseInt(addMoneyAmountInput.value);
+            if (!amount || amount < 10) {
+                walletError.textContent = "Please enter an amount of at least ₹10.";
+                return;
+            }
+            walletError.textContent = "";
+            addMoneyBtn.textContent = 'Processing...';
+            addMoneyBtn.disabled = true;
+
+            try {
+                const createOrderFunction = functions.httpsCallable('createOrder');
+                const result = await createOrderFunction({ amount: amount * 100 }); // paisa mein bhejein
+                const order = result.data;
+
+                const options = {
+                    "key": order.razorpayKeyId,
+                    "amount": order.amount,
+                    "currency": "INR",
+                    "name": "GK Academy",
+                    "description": "Add to Wallet",
+                    "order_id": order.id,
+                    "handler": async function (response) {
+                        try {
+                            const verifyPaymentFunction = functions.httpsCallable('verifyPaymentAndUpdateWallet');
+                            const verificationResult = await verifyPaymentFunction({
+                                ...response,
+                                amount: order.amount
+                            });
+                            
+                            if (verificationResult.data.status === 'success') {
+                                alert('Payment Successful! Wallet has been updated.');
+                                walletModal.style.display = 'none';
+                            } else {
+                                walletError.textContent = 'Payment verification failed.';
+                            }
+                        } catch (error) {
+                            walletError.textContent = 'Verification failed. Contact support.';
+                        }
+                    },
+                    "prefill": { "name": currentUserData.name, "email": currentUser.email },
+                    "theme": { "color": "#00c6ff" }
+                };
+
+                const rzp1 = new Razorpay(options);
+                rzp1.on('payment.failed', function (response){
+                    walletError.textContent = response.error.description;
+                });
+                rzp1.open();
+
+            } catch (error) {
+                walletError.textContent = 'Could not create order. Try again.';
+            } finally {
+                addMoneyBtn.textContent = 'Add Money';
+                addMoneyBtn.disabled = false;
+            }
+        });
+
+        // JOIN CONTEST
+        joinContestBtn.addEventListener('click', async () => {
+             // Iska logic hum baad mein add karenge, jab contest data load hoga
+             // Pehle check karein ki balance hai ya nahi
+             const entryFee = 10; // Isko contest data se lena hoga
+             if (currentUserData.walletBalance < entryFee) {
+                 alert("Insufficient balance. Please add money to your wallet.");
+                 return;
+             }
+             
+             // Yahan balance kaatne aur contest join karne ka logic aayega
+             alert("Joining contest...");
+        });
+        
+        // (Baaki ka saara code jaise auth form, contest lobby, game logic, etc. yahan rahega)
+        // ...
+    });
+    </script>
+</body>
+</html>
+
+
